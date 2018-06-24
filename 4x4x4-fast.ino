@@ -63,8 +63,8 @@ void loop() {
 void worm(int turns){
   allOff();
   xyz worm[WORM_SIZE] = {{0, 0, 0}, {0, 0, 1}, {0, 0, 2}, {0, 0, 3}};
-  for(int t = 50*turns; t >= 0; t--){
-    if (t % 10 == 0){
+  for(int t = turns*WAIT; t >= 0; t--){
+    if (t % WAIT/2 == 0){
       logic(worm);
     }
     flash_leds(worm);
@@ -114,7 +114,6 @@ void make_move(xyz worm[WORM_SIZE], xyz direction){
 xyz move(xyz now, xyz direction)
 {
   xyz next = {now.x + direction.x, now.y + direction.y, now.z + direction.z};
-  
   return next;
 }
 
@@ -154,16 +153,12 @@ void flash_leds(xyz worm[WORM_SIZE]){
 
 void flickerOff(){
   int i = 1;
-  while(i < 150)
+  while(i < WAIT*5)
   {
     allOn();
-    #ifdef WAIT
     delay(i);
-    #endif
     allOff();
-    #ifdef WAIT
     delay(i);
-    #endif
     i+= 5;
   }
 }
@@ -175,11 +170,7 @@ void randomFlicker(){
     int randX = random(0,4);
     int randY = random(0,4);
     int randZ = random(0,4);
-    #ifdef WAIT
     flashLed(randX, randY, randZ, WAIT*1.25); 
-    #else
-    flashLed(randX, randY, randZ); 
-    #endif
   }
 }
 
@@ -190,28 +181,20 @@ void randomRain(){
     int randX = random(0,4);
     int randY = random(0,4);
     for(int z = 3; z >= 0; z--){
-      #ifdef WAIT
       flashLed(randX, randY, z, WAIT*1.25); 
-      #else
-      flashLed(randX, randY, z); 
-      #endif
     }
   }
 }
 
 void flickerOn()
 {
-  int i = 151;
+  int i = (WAIT*5)+1;
   while(i > 0)
   {
     allOn();
-    #ifdef WAIT
     delay(i);
-    #endif
     allOff();
-    #ifdef WAIT
     delay(i);
-    #endif
     i-= 5;
   }
 }
@@ -220,22 +203,14 @@ void eachSideBySide(){
   for(int y = 3; y >= 0; y--) {
     for(int x = 0; x < 4; x++) {
       for(int z = 0; z < 4; z++) {
-        #ifdef WAIT
         flashLed(x, y, z, WAIT*1.25); 
-        #else
-        flashLed(x, y, z); 
-        #endif
       } 
     } 
   }
   for(int x = 0; x < 4; x++) {
     for(int y = 3; y >= 0; y--) {
       for(int z = 3; z >= 0; z--) {
-        #ifdef WAIT
         flashLed(x, y, z, WAIT*1.25); 
-        #else
-        flashLed(x, y, z); 
-        #endif
       } 
     } 
   }
@@ -245,11 +220,7 @@ void eachBottomUp(){
   for(int z = 0; z < 4; z++) {
     for(int y = 0; y < 4; y++) {
       for(int x = 0; x < 4; x++) {
-        #ifdef WAIT
         flashLed(x, y, z, WAIT*1.25); 
-        #else
-        flashLed(x, y, z); 
-        #endif
       } 
     } 
   }
@@ -284,39 +255,23 @@ void flashLed(int x, int y, int z){
   switch(z){
     case 0:
       PORTC |= B00000001;
-      #ifdef WAIT
       flashColumnLed(x, y, WAIT);
-      #else
-      flashColumnLed(x, y);
-      #endif
       PORTC &= B11111110;
       break;
     case 1:
       PORTC |= B00000010;
-      #ifdef WAIT
       flashColumnLed(x, y, WAIT);
-      #else
-      flashColumnLed(x, y);
-      #endif
       PORTC &= B11111101;
       break;
     case 2:
       PORTC |= B00000100;
-      #ifdef WAIT
       flashColumnLed(x, y, WAIT);
-      #else
-      flashColumnLed(x, y);
-      #endif
       PORTC &= B11111011;
       break;
     case 3:
     default:
       PORTC |= B00001000;
-      #ifdef WAIT
       flashColumnLed(x, y, WAIT);
-      #else
-      flashColumnLed(x, y);
-      #endif
       PORTC &= B11110111;
   }
 }
@@ -417,91 +372,6 @@ void flashColumnLed(int x, int y, int wait){
         default:
           PORTC &= B11101111;
           delay(wait);
-          PORTC |= B00010000;
-    }
-  }
-}
-
-void flashColumnLed(int x, int y){
-  switch(x){
-    case 0:
-      switch(y){
-        case 0:
-          PORTB &= B11011111;
-          PORTB |= B00100000;
-          break;
-        case 1:
-          PORTB &= B11101111;
-          PORTB |= B00010000;
-          break;
-        case 2:
-          PORTB &= B11110111;
-          PORTB |= B00001000;
-          break;
-        case 3:
-        default:
-          PORTB &= B11111011;
-          PORTB |= B00000100;
-      }
-      break;
-    case 1:
-      switch(y){
-        case 0:
-          PORTB &= B11111101;
-          PORTB |= B00000010;
-          break;
-        case 1:
-          PORTB &= B11111110;
-          PORTB |= B00000001;
-          break;
-        case 2:
-          PORTD &= B01111111;
-          PORTD |= B10000000;
-          break;
-        case 3:
-        default:
-          PORTD &= B10111111;
-          PORTD |= B01000000;
-      }
-      break;
-    case 2:
-      switch(y){
-        case 0:
-          PORTD &= B11011111;
-          PORTD |= B00100000;
-          break;
-        case 1:
-          PORTD &= B11101111;
-          PORTD |= B00010000;
-          break;
-        case 2:
-          PORTD &= B11110111;
-          PORTD |= B00001000;
-          break;
-        case 3:
-        default:
-          PORTD &= B11111011;
-          PORTD |= B00000100;
-      }
-      break;
-    case 3:
-    default:
-      switch(y){
-        case 0:
-          PORTD &= B11111101;
-          PORTD |= B00000010;
-          break;
-        case 1:
-          PORTD &= B11111110;
-          PORTD |= B00000001;
-          break;
-        case 2:
-          PORTC &= B11011111;
-          PORTC |= B00100000;
-          break;
-        case 3:
-        default:
-          PORTC &= B11101111;
           PORTC |= B00010000;
     }
   }
